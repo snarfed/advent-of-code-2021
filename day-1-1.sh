@@ -1,7 +1,7 @@
-# Usage: ./day-1-1.sh | grep 1 | wc -l
+# Usage: ./day-1-1.sh < day-1-1.input | grep 1 | wc -l
 
 last='NA'
-for i in `cat day-1-1.input`; do
+while read -r i; do
   expr $i \> $last
   last=$i
 done
