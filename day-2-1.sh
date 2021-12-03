@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: day-2-1.sh day-2-1.input
+# Usage: day-2-1.sh day-2.input
 
 set -x
 

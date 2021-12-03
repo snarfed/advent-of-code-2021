@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: ./day-2-2.sh < day-2-2.input
+# Usage: ./day-2-2.sh < day-2.input
 
 set -x
 
