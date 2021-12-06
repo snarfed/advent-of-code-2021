@@ -18,12 +18,7 @@ CREATE TABLE seq (v INT);
 CREATE FUNCTION mx (a INT, b INT) RETURNS INT DETERMINISTIC RETURN IF(a > b, a, b);
 CREATE FUNCTION mn (a INT, b INT) RETURNS INT DETERMINISTIC RETURN IF(a < b, a, b);
 
-WITH points AS (
-SELECT x.v xv, y.v yv,
-  mn(l1.x1, l1.x2) l1xs, mx(l1.x1, l1.x2) l1xe,  -- s for start, e for end
-  mn(l2.x1, l2.x2) l2xs, mx(l2.x1, l2.x2) l2xe,
-  mn(l1.y1, l1.y2) l1ys, mx(l1.y1, l1.y2) l1ye,  -- s for start, e for end
-  mn(l2.y1, l2.y2) l2ys, mx(l2.y1, l2.y2) l2ye
+SELECT COUNT(DISTINCT x.v, y.v)
 FROM seq x
 LEFT JOIN seq y ON TRUE
 LEFT JOIN straight l1 ON TRUE
@@ -31,19 +26,70 @@ LEFT JOIN straight l2 ON l1.x1 != l2.x1 OR l1.x2 != l2.x2 OR l1.y1 != l2.y1 OR l
 WHERE
   -- horiz, overlapping
   (x.v = l1.x1 AND x.v = l1.x2 AND x.v = l2.x1 AND x.v = l2.x2
-   AND y.v <= l1ye AND y.v <= l2ye
-   AND y.v >= l1ys AND y.v >= l2ys)
+   AND y.v <= mx(l1.y1, l1.y2) AND y.v <= mx(l2.y1, l2.y2)
+   AND y.v >= mn(l1.y1, l1.y2) AND y.v >= mn(l2.y1, l2.y2))
   OR
   -- vert, overlapping
   (y.v = l1.y1 AND y.v = l1.y2 AND y.v = l2.y1 AND y.v = l2.y2
-   AND x.v <= l1xe AND x.v <= l2xe
-   AND x.v >= l1xs AND x.v >= l2xs)
+   AND x.v <= mx(l1.x1, l1.x2) AND x.v <= mx(l2.x1, l2.x2)
+   AND x.v >= mn(l1.x1, l1.x2) AND x.v >= mn(l2.x1, l2.x2))
   OR
   -- intersecting
   (x.v = l1.x1 AND x.v = l1.x2 AND y.v = l2.y1 AND y.v = l2.y2
-   AND x.v <= l2xe AND x.v >= l2xs
-   AND y.v <= l1ye AND y.v >= l1ys)
-)
+   AND x.v <= mx(l2.x1, l2.x2) AND x.v >= mn(l2.x1, l2.x2)
+   AND y.v <= mx(l1.y1, l1.y2) AND y.v >= mn(l1.y1, l1.y2))
 
-SELECT COUNT(DISTINCT xv, yv)
-FROM points;
+
+-- ------
+-- PART 2
+-- ------
+
+CREATE VIEW diag AS SELECT * FROM line WHERE x1 != x2 AND y1 != y2;
+
+-- In progress, trying to find pairs of lines with different orientations
+SELECT *
+FROM diag d1
+LEFT JOIN diag d2 ON
+  (SIGN(d1.y2 - d1.y1) - SIGN(d1.x2 - d1.x1) !=
+   SIGN(d2.y2 - d2.y1) - SIGN(d2.x2 - d2.x1))
+LIMIT 100;
+
+
+-- Runs too long on my computer :/
+SELECT COUNT(DISTINCT x.v, y.v)
+FROM seq x
+LEFT JOIN seq y ON TRUE
+LEFT JOIN line l1 ON TRUE
+LEFT JOIN line l2 ON l1.x1 != l2.x1 OR l1.x2 != l2.x2 OR l1.y1 != l2.y1 OR l1.y2 != l2.y2
+WHERE
+  -- l1 diagonal
+  (mx(l1.x1, l1.x2) - x.v = x.v - mn(l1.x1, l1.x2) AND
+   mx(l1.y1, l1.y2) - y.v = y.v - mn(l1.y1, l1.y2) AND (
+    -- l2 diagonal
+    (mx(l2.x1, l2.x2) - x.v = x.v - mn(l2.x1, l2.x2) AND
+     mx(l2.y1, l2.y2) - y.v = y.v - mn(l2.y1, l2.y2))
+    OR
+    -- l2 horiz
+    (x.v = l2.x1 AND x.v = l2.x2
+     AND y.v >= mn(l2.y1, l2.y2) AND y.v >= mn(l2.y1, l2.y2))
+    OR
+    -- l2 vert
+    (y.v = l2.y1 AND y.v = l2.y2
+     AND x.v >= mn(l2.x1, l2.x2) AND x.v >= mn(l2.x1, l2.x2))));
+
+
+  -- horiz, overlapping
+  (x.v = l1.x1 AND x.v = l1.x2 AND x.v = l2.x1 AND x.v = l2.x2
+   AND y.v <= mx(l1.y1, l1.y2) AND y.v <= mx(l2.y1, l2.y2)
+   AND y.v >= mn(l1.y1, l1.y2) AND y.v >= mn(l2.y1, l2.y2))
+  OR
+  -- vert, overlapping
+  (y.v = l1.y1 AND y.v = l1.y2 AND y.v = l2.y1 AND y.v = l2.y2
+   AND x.v <= mx(l1.x1, l1.x2) AND x.v <= mx(l2.x1, l2.x2)
+   AND x.v >= mn(l1.x1, l1.x2) AND x.v >= mn(l2.x1, l2.x2))
+  OR
+  -- intersecting
+  (x.v = l1.x1 AND x.v = l1.x2 AND y.v = l2.y1 AND y.v = l2.y2
+   AND x.v <= mx(l2.x1, l2.x2) AND x.v >= mn(l2.x1, l2.x2)
+   AND y.v <= mx(l1.y1, l1.y2) AND y.v >= mn(l1.y1, l1.y2))
+  OR
