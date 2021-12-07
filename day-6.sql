@@ -1,3 +1,7 @@
+--
+-- PART 1
+--
+
 CREATE TABLE generation (
   d0 INT,  -- number of lanternfish currently at this timer
   d1 INT,
@@ -41,3 +45,24 @@ CALL simulate(80);
 SELECT d0 + d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8
 FROM generation
 WHERE id = 81;
+
+
+--
+-- PART 2
+--
+DROP TABLE generation;
+CREATE TABLE generation (
+  d0 BIGINT,
+  d1 BIGINT,
+  d2 BIGINT,
+  d3 BIGINT,
+  d4 BIGINT,
+  d5 BIGINT,
+  d6 BIGINT,
+  d7 BIGINT,
+  d8 BIGINT,
+  id BIGINT AUTO_INCREMENT,
+  PRIMARY KEY (id)
+);
+
+-- rest is same as above
