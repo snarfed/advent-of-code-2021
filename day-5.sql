@@ -75,9 +75,8 @@ WHERE
     OR
     -- l2 vert
     (y.v = l2.y1 AND y.v = l2.y2
-     AND x.v >= mn(l2.x1, l2.x2) AND x.v >= mn(l2.x1, l2.x2))));
-
-
+     AND x.v >= mn(l2.x1, l2.x2) AND x.v >= mn(l2.x1, l2.x2))))
+  OR
   -- horiz, overlapping
   (x.v = l1.x1 AND x.v = l1.x2 AND x.v = l2.x1 AND x.v = l2.x2
    AND y.v <= mx(l1.y1, l1.y2) AND y.v <= mx(l2.y1, l2.y2)
@@ -91,5 +90,4 @@ WHERE
   -- intersecting
   (x.v = l1.x1 AND x.v = l1.x2 AND y.v = l2.y1 AND y.v = l2.y2
    AND x.v <= mx(l2.x1, l2.x2) AND x.v >= mn(l2.x1, l2.x2)
-   AND y.v <= mx(l1.y1, l1.y2) AND y.v >= mn(l1.y1, l1.y2))
-  OR
+   AND y.v <= mx(l1.y1, l1.y2) AND y.v >= mn(l1.y1, l1.y2));
