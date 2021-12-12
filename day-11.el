@@ -48,4 +48,16 @@
                                         (number-sequence 0 9))))
                     (number-sequence 0 9))))
 
-(apply '+ (mapcar 'step (number-sequence 0 99)))
+;; (apply '+ (mapcar 'step (number-sequence 0 99)))
+
+
+;;
+;; PART 2
+;;
+(dotimes (i 10000)
+  (message "%s" i)
+  (step i)
+  (if (seq-every-p (lambda (line)
+                     (seq-every-p (lambda (oct) (= oct -1)) line))
+                   octs)
+      (message "EVERYONE FLASHED")))
