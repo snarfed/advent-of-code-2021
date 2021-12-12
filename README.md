@@ -3,7 +3,7 @@
 * [x] Shell pipelines. Focused on using standard *nix/POSIX tools, eg GNU, coreutils, etc, more than shell script programming.
 * [X] SQL
 * [ ] Prolog
-* [ ] Emacs Lisp
+* [X] Emacs Lisp
 * [ ] CSS
 * [ ] Postscript
 * [ ] C++ templates
