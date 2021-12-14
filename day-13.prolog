@@ -1,18 +1,41 @@
-%% :- table foldx/5, foldy/5.
+:- table foldx/5, foldy/5, all/2.
 
-foldx(At, X, Y, NewX, NewY) :- dot(X, Y), NewY is Y, X =< At, NewX is X.
-foldx(At, X, Y, NewX, NewY) :- dot(X, Y), NewY is Y, X > At, NewX is 2 * At - X.
+foldx(At, X, Y, NewX, NewY) :- NewY is Y, X =< At, NewX is X.
+foldx(At, X, Y, NewX, NewY) :- NewY is Y, X > At, NewX is 2 * At - X.
 
-foldy(At, X, Y, NewX, NewY) :- dot(X, Y), NewX is X, Y =< At, NewY is Y.
-foldy(At, X, Y, NewX, NewY) :- dot(X, Y), NewX is X, Y > At, NewY is 2 * At - Y.
+foldy(At, X, Y, NewX, NewY) :- NewX is X, Y =< At, NewY is Y.
+foldy(At, X, Y, NewX, NewY) :- NewX is X, Y > At, NewY is 2 * At - Y.
 
 %% part 1
-first(X1, Y1) :-
+first() :-
     dot(X0, Y0),
     foldx(655, X0, Y0, X1, Y1),
     write(X1), write(' '), write(Y1), nl,
     fail.
-first(_, _).
+first(_).
+
+%% part 2
+all(X12, Y12) :-
+    dot(X0, Y0),
+    foldx(655, X0, Y0, X1, Y1),
+    foldy(447, X1, Y1, X2, Y2),
+    foldx(327, X2, Y2, X3, Y3),
+    foldy(223, X3, Y3, X4, Y4),
+    foldx(163, X4, Y4, X5, Y5),
+    foldy(111, X5, Y5, X6, Y6),
+    foldx(81,  X6, Y6, X7, Y7),
+    foldy(55,  X7, Y7, X8, Y8),
+    foldx(40,  X8, Y8, X9, Y9),
+    foldy(27,  X9, Y9, X10, Y10),
+    foldy(13,  X10, Y10, X11, Y11),
+    foldy(6,   X11, Y11, X12, Y12).
+
+print_all() :-
+    all(X12, Y12),
+    write(X12), write(' '), write(Y12), nl,
+    fail.
+all(_).
+
 
 %% input data
 dot(1213,736).
