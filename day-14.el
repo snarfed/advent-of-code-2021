@@ -1,5 +1,5 @@
 (defun step (pairs)
-  (setq new '())
+  (setq polymer '())
   (mapc
    (lambda (item)
      (let* ((pair (car item))
@@ -7,27 +7,24 @@
             (insert (assoc pair reps)))
        (if insert
            (progn
-             (let ((left (list (car pair) (cdr insert))))
-               (push (cons left (+ count (or (assoc-default left new) 0))) new))
-             (let ((right (list (cdr insert) (cadr pair))))
-               (push (cons right (+ count (or (assoc-default right new) 0))) new))))))
+             (let* ((left (list (car pair) (cdr insert)))
+                    (left-item (cons left (+ count (or (assoc-default left polymer) 0)))))
+               (assoc-delete-all left polymer)
+               (push left-item polymer))
+             (let* ((right (list (cdr insert) (cadr pair)))
+                    (right-item (cons right (+ count (or (assoc-default right polymer) 0)))))
+               (assoc-delete-all right polymer)
+               (push right-item polymer))))))
    pairs)
-  (message "%s %s" (length new) new)
-  new)
-
-(step template)
-(step new)
-(step new)
-(step new)
-(step new)
-(step new)
-(step new)
-(step new)
-(step new)
-(step new)
+  polymer)
 
 ;; run
-(setq template
+(dotimes (i 10) (step polymer))
+(message (sort polymer (lambda (x y) (- (cdr x) (cdr y)))))
+
+
+;; input data
+(setq polymer
   '(
     (('B 'O) . 1)
     (('C 'B) . 1)
