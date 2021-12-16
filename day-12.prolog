@@ -1,3 +1,6 @@
+%% https://www.swi-prolog.org/pldoc/man?section=tabling-non-termination
+:- table connect/2, path/2.
+
 big(my).
 big(nf).
 big(tp).
@@ -29,15 +32,22 @@ connect(start, nf).
 connect(X, Y) :- connect(Y, X).
 
 path(X, Y) :-
-    connect(X, Y),
+    connect(X, Y).
 
 path(X, Y) :-
     connect(X, A),
     path(A, Y).
 
-report:-
+path(X, Z, Y) :-
+    path(X, Z),
+    path(Z, Y).
+
+report() :-
   write('Paths:'), nl,
-  path(start, end),
+  path(start, X, end),
+  writeln(X),
+  fail.
+report(_).
+
   %% writef(A), write(' '), write(B), nl,
   %% writef('%s %s', [A, B]), nl,
-  fail.
