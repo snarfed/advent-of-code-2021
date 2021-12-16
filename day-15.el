@@ -1,15 +1,26 @@
 (progn
   (init-seen)
-  (search '(((0 0)))))
+  ;; (search '(((0 0)))))
+  (search '(((9 8) (9 7)
+             ((9 7) (9 6) (9 8))
+             ((9 6) (9 5) (9 7))
+             ((9 5) (9 4) (9 6))
+             ((9 4) (9 3) (9 5))
+             ((9 3) (9 2) (9 4))
+             ((9 2) (9 1) (9 3))
+             ((9 1) (9 0) (9 2))
+             ((9 0) (8 0) (9 1))
+             ((8 0) (7 0) (9 0))
+             ((7 0) (6 0) (8 0))
+             ((6 0) (5 0) (7 0))
+             ((5 0) (4 0) (6 0))
+             ((4 0) (3 0) (5 0))
+             ((3 0) (2 0) (4 0))
+             ((2 0) (1 0) (3 0))
+             ((1 0) (0 0) (2 0))
+             ((0 0) (1 0))))))
 
 (defun search (path)
-  (setq best
-        ;; right all the way, then down
-        (seq-reduce (lambda (total pos) (+ total (apply 'risk pos)))
-                    (append (mapcar (lambda (x) (list x 0)) (number-sequence 1 9))
-                            (mapcar (lambda (y) (list 9 y)) (number-sequence 1 9)))
-                    0))
-
   (while path
     (let ((next (step path best))
           (len (length board)))
