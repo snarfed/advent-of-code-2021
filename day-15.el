@@ -1,52 +1,83 @@
 (progn
   (init-seen)
-  (search '((0 0))))
+  (search '(((0 0)))))
 
 (defun search (path)
-  (while path
-    (let ((next (step path)))
-      (message "next step %s" next)
-      (if next
-          ;; found a next step, continue
-          (push next path)
-        ;; no next step found, backtrack
-            (pop path)
-            ;; (setcar (apply 'seencdr (pop path)) nil)
-          ;; tried all paths! give up.
-          ))))
+  (setq best
+        ;; right all the way, then down
+        (seq-reduce (lambda (total pos) (+ total (apply 'risk pos)))
+                    (append (mapcar (lambda (x) (list x 0)) (number-sequence 1 9))
+                            (mapcar (lambda (y) (list 9 y)) (number-sequence 1 9)))
+                    0))
 
-(defun step (path)
+  (while path
+    (let ((next (step path best))
+          (len (length board)))
+      ;; (message "next step %s" next)
+      (if next
+          ;; found a next step, mark it taken
+          (progn
+            (push next (cdar path))
+            (push (list next (caar path)) path)))
+
+      (let ((total (total path)))
+        (if (or (not next) (> total best))
+            ;; no usable next step, backtrack
+            (progn
+              (setcar (apply 'seencdr (car (pop path))) nil)
+              (message "backtracking at %s, best %s" total best)
+              ;; tried all paths! give up.
+              )))
+
+      ;; did we hit the end?
+      (if (eq next (list (- len 1) (- len 1)))
+          (progn
+            (setq best (total path))
+            (message "risk %s steps %s" best (- (length path) 1))))
+      ;; (message "   path %s" path)
+      )))
+
+(defun total (path)
+  "return a path's total risk"
+  (seq-reduce (lambda (total step)
+                (let ((pos (car step)))
+                  (+ total (risk (car pos) (cadr pos)))))
+              (butlast path) 0))
+
+(defun step (path max)
   "DFS, greedy. Returns the next position to step to.
-  path is ((x9 y9) (x8 y8) ... (x1 y1))"
+  path is (((x9 y9) [positions already taken from this point...])
+           ((x8 y8) [...])
+           ...
+           ((x1 y1) [...]))
+  max is risk of the best path we've found so far"
   (let* ((cur (car path))
-         (x (car cur))
-         (y (cadr cur)))
+         (cur-pos (car cur))
+         (x (car cur-pos))
+         (y (cadr cur-pos))
+         (len (length board)))
     (setcar (seencdr x y) t)
-    (if (and (= x 99) (= y 99))
-        ;; base case, hit the end! message returns nil to signal that we should
-        ;; backtrack and keep looking
-        (message "%s steps %s risk"
-                 (- (length path) 1)
-                 (seq-reduce (lambda (total pos) (+ total (risk (car pos) (cadr pos))))
-                               (butlast path) 0))
-      ;; look for the smallest risk step to take that we haven't already taken
-      (seq-reduce
-       (lambda (last cur)
-         (let* ((cx (car cur))
-                (cy (cadr cur))
-                (lx (car last))
-                (ly (cadr last))
-                (len (length board)))
-           (if (and (>= cx 0) (>= cy 0) (< cx len) (< cy len)
-                    (not (car (seencdr cx cy)))
-                    (or (not last) (< (risk cx cy) (risk lx ly))))
-               cur
-             last)))
-       (list (list (- x 1) y)
-             (list (+ x 1) y)
-             (list x (- y 1))
-             (list x (+ y 1)))
-       nil))))
+    ;; look for the smallest risk step to take that we haven't already taken
+    (seq-reduce
+     (lambda (best cand)
+       (let* ((cx (car cand))
+              (cy (cadr cand))
+              (bx (car best))
+              (by (cadr best))
+              (path-risk (total path)))
+         ;; (message "  %s %s is in %s" (seq-contains-p cur cand) cand cur)
+
+         (if (and (>= cx 0) (>= cy 0) (< cx len) (< cy len)
+                  (not (seq-contains-p cur cand))
+                  (not (car (seencdr cx cy)))
+                  (or (not best) (< (risk cx cy) (risk bx by)))
+             cand
+           best)))
+     (list (list (- x 1) y)
+           (list (+ x 1) y)
+           (list x (- y 1))
+           (list x (+ y 1)))
+     nil)))
 
 (defun init-seen ()
   (setq seen nil)
