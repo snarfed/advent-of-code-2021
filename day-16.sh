@@ -66,10 +66,12 @@ while [[ ! $data =~ ^0*$ && (( $num > 0 )) ]]; do
             if (( $skip <= 0 )); then
                 python3 -c "import operator, math; print(${ops}`echo ${data} | ./day-16.sh $num_subs`${ope}, end=',')"
             fi
-            skip=$(( $num_subs + 1 ))
+            skip=$(( $skip + $num_subs + 1 ))  # + 1 because we - 1 below
             # exit
         fi
     fi
     num=$(( num - 1 ))
-    skip=$(( skip - 1 ))
+    if (( $skip > 0 )); then
+        skip=$(( skip - 1 ))
+    fi
 done
