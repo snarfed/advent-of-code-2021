@@ -14,35 +14,38 @@ BEGIN
     SET @cur_step = (SELECT MAX(step) FROM cucumber);
 
     INSERT INTO cucumber
-      SELECT IFNULL(next.x, cur.x), IFNULL(next.y, cur.y), cur.dir, cur.step + 1
+      SELECT IF(next.x IS NULL, (cur.x + 1) % 10, cur.x), cur.y, cur.dir, cur.step + 1
       FROM cucumber cur
-      LEFT JOIN cucumber next ON
-        next.x = (cur.x + IF(cur.dir = 'R', 1, 0)) % 139 AND
-        next.y = (cur.y + IF(cur.dir = 'D', 1, 0)) % 137
-      WHERE cur.step = @cur_step AND (next.step = @cur_step OR next.step IS NULL);
+      LEFT JOIN cucumber next
+        ON next.x = (cur.x + 1) % 10 AND next.y = cur.y AND
+        (next.step = @cur_step OR next.step IS NULL)
+      WHERE cur.dir = 'R' AND cur.step = @cur_step;
+
+    INSERT INTO cucumber
+      SELECT cur.x, IF(next.y IS NULL, (cur.y + 1) % 9, cur.y), cur.dir, cur.step + 1
+
+      FROM cucumber cur
+      LEFT JOIN cucumber next
+        ON next.x = cur.x AND next.y = (cur.y + 1) % 9 AND
+        ((next.step = @cur_step AND next.dir = 'D') OR
+         (next.step = @cur_step + 1 AND next.dir = 'R') OR
+         next.step IS NULL)
+      WHERE cur.dir = 'D' AND cur.step = @cur_step;
 
     SET @i = @i + 1;
   UNTIL @i > steps END REPEAT;
 END//
 delimiter ;
 
--- CREATE PROCEDURE render(step INT)
--- BEGIN
---   SET @cur_step = SELECT MAX(step) FROM cucumber;
 
---     INSERT INTO cucumber
---       SELECT IFNULL(next.x, cur.x), IFNULL(next.y, cur.y), cur.dir, cur.step + 1
---       FROM cucumber cur
---       LEFT JOIN cucumber next ON
---         next.x = (cur.x + IF(cur.dir = 'R', 1, 0)) % 139 AND
---         next.y = (cur.y + IF(cur.dir = 'D', 1, 0)) % 137
---       WHERE cur.step = cur_step AND next.step IN (cur_step, NULL);
+-- render
+SELECT GROUP_CONCAT(dir ORDER BY x SEPARATOR '') FROM cucumber
+  WHERE step = 0
+  GROUP BY y
+  ORDER BY y;
 
---     SET @i = @i + 1;
---   UNTIL @i > steps END REPEAT;
--- END//
-delimiter ;
 
+-- test input
 INSERT INTO cucumber(x, y, dir) VALUES
 
 (0, 0, 'D'),
