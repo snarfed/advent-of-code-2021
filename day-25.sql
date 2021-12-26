@@ -7,33 +7,37 @@ CREATE TABLE cucumber (
 
 delimiter //
 DROP PROCEDURE run//
-CREATE PROCEDURE run(steps INT)
+CREATE PROCEDURE run()
 BEGIN
   SET @i = 1;
   REPEAT
     SET @cur_step = (SELECT MAX(step) FROM cucumber);
 
     INSERT INTO cucumber
-      SELECT IF(next.x IS NULL, (cur.x + 1) % 10, cur.x), cur.y, cur.dir, cur.step + 1
+      SELECT IF(next.x IS NULL, (cur.x + 1) % 139, cur.x), cur.y, cur.dir, cur.step + 1
       FROM cucumber cur
       LEFT JOIN cucumber next
-        ON next.x = (cur.x + 1) % 10 AND next.y = cur.y AND
+        ON next.x = (cur.x + 1) % 139 AND next.y = cur.y AND
         (next.step = @cur_step OR next.step IS NULL)
       WHERE cur.dir = 'R' AND cur.step = @cur_step;
 
     INSERT INTO cucumber
-      SELECT cur.x, IF(next.y IS NULL, (cur.y + 1) % 9, cur.y), cur.dir, cur.step + 1
+      SELECT cur.x, IF(next.y IS NULL, (cur.y + 1) % 137, cur.y), cur.dir, cur.step + 1
 
       FROM cucumber cur
       LEFT JOIN cucumber next
-        ON next.x = cur.x AND next.y = (cur.y + 1) % 9 AND
+        ON next.x = cur.x AND next.y = (cur.y + 1) % 137 AND
         ((next.step = @cur_step AND next.dir = 'D') OR
          (next.step = @cur_step + 1 AND next.dir = 'R') OR
          next.step IS NULL)
       WHERE cur.dir = 'D' AND cur.step = @cur_step;
 
     SET @i = @i + 1;
-  UNTIL @i > steps END REPEAT;
+  UNTIL (SELECT COUNT(*) FROM cucumber WHERE step = @cur_step) =
+        (SELECT COUNT(*) FROM cucumber b
+         INNER JOIN cucumber a ON a.x = b.x AND a.y = b.y AND a.dir = b.dir
+         WHERE a.step = @cur_step AND b.step = @cur_step + 1)
+        END REPEAT;
 END//
 delimiter ;
 
